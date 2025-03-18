@@ -39,8 +39,8 @@ namespace osu.Game.Rulesets.Mods
         public BindableNumber<double> MinimumAccuracy { get; } = new BindableDouble
         {
             MinValue = 0.60,
-            MaxValue = 0.999,
-            Precision = 0.001,
+            MaxValue = 0.995,
+            Precision = 0.005,
             Default = 0.9,
             Value = 0.9,
         };
