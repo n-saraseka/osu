@@ -52,6 +52,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators.Speed
             OsuDifficultyHitObject prevObj = (OsuDifficultyHitObject)current.Previous(rhythmStart);
             OsuDifficultyHitObject lastObj = (OsuDifficultyHitObject)current.Previous(rhythmStart + 1);
 
+            double currIslandDelta = deltaDifferenceEpsilon;
+            double prevIslandDelta = deltaDifferenceEpsilon;
+            int deltaRepetitionCount = 0;
+
             // we go from the furthest object back to the current one
             for (int i = rhythmStart; i > 0; i--)
             {
@@ -117,10 +121,28 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators.Speed
                         if (lastDelta > prevDelta + deltaDifferenceEpsilon && prevDelta > currDelta + deltaDifferenceEpsilon)
                             effectiveRatio *= 0.125;
 
+                        prevIslandDelta = currIslandDelta;
+                        currIslandDelta = currDelta;
+
                         // repeated island size (ex: triplet -> triplet)
-                        // TODO: remove this nerf since its staying here only for balancing purposes because of the flawed ratio calculation
                         if (previousIsland.DeltaCount == island.DeltaCount)
-                            effectiveRatio *= 0.5;
+                        {
+                            if (previousIsland.Delta == island.Delta)
+                            {
+                                deltaRepetitionCount++;
+                                if (Math.Abs(prevIslandDelta - currIslandDelta) > 1e-7)
+                                    effectiveRatio *= Math.Pow(0.8, deltaRepetitionCount + 1);
+                                else
+                                    effectiveRatio *= Math.Pow(0.5, deltaRepetitionCount + 1);
+                            }
+                            else
+                            {
+                                effectiveRatio *= 0.9;
+                                deltaRepetitionCount = 0;
+                            }
+                        }
+                        else // buff different island sizes slightly because they're not as predictable
+                            effectiveRatio *= 1.1;
 
                         var islandCount = islandCounts.FirstOrDefault(x => x.Island.Equals(island));
 
@@ -131,10 +153,6 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators.Speed
                             // only add island to island counts if they're going one after another
                             if (previousIsland.Equals(island))
                                 islandCount.Count++;
-
-                            // repeated island (ex: triplet -> triplet)
-                            double power = DifficultyCalculationUtils.Logistic(island.Delta, maxValue: 2.75, multiplier: 0.24, midpointOffset: 58.33);
-                            effectiveRatio *= Math.Min(3.0 / islandCount.Count, Math.Pow(1.0 / islandCount.Count, power));
 
                             islandCounts[countIndex] = (islandCount.Island, islandCount.Count);
                         }
