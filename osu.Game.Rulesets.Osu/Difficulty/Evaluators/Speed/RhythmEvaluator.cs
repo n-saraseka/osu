@@ -127,10 +127,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators.Speed
                         // repeated island size (ex: triplet -> triplet)
                         if (previousIsland.DeltaCount == island.DeltaCount)
                         {
-                            if (previousIsland.Delta == island.Delta)
+                            if (previousIsland.Equals(island))
                             {
                                 deltaRepetitionCount++;
-                                if (Math.Abs(prevIslandDelta - currIslandDelta) > 1e-7)
+                                if (Math.Abs(prevIslandDelta - currIslandDelta) > deltaDifferenceEpsilon)
                                     effectiveRatio *= Math.Pow(0.8, deltaRepetitionCount + 1);
                                 else
                                     effectiveRatio *= Math.Pow(0.5, deltaRepetitionCount + 1);
@@ -142,7 +142,10 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Evaluators.Speed
                             }
                         }
                         else // buff different island sizes slightly because they're not as predictable
+                        {
+                            deltaRepetitionCount = 0;
                             effectiveRatio *= 1.1;
+                        }
 
                         var islandCount = islandCounts.FirstOrDefault(x => x.Island.Equals(island));
 
