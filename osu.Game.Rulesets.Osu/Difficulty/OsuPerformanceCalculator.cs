@@ -15,6 +15,8 @@ using osu.Game.Rulesets.Osu.Mods;
 using osu.Game.Rulesets.Scoring;
 using osu.Game.Scoring;
 using osu.Game.Utils;
+using System.Numerics;
+using MathNet.Numerics.Distributions;
 
 namespace osu.Game.Rulesets.Osu.Difficulty
 {
@@ -267,32 +269,35 @@ namespace osu.Game.Rulesets.Osu.Difficulty
 
         private double computeAccuracyValue(ScoreInfo score, OsuDifficultyAttributes attributes)
         {
+
             if (score.Mods.Any(h => h is OsuModRelax))
                 return 0.0;
 
-            // This percentage only considers HitCircles of any value - in this part of the calculation we focus on hitting the timing hit window.
-            double betterAccuracyPercentage;
             int amountHitObjectsWithAccuracy = attributes.HitCircleCount;
             if (!usingClassicSliderAccuracy || usingScoreV2)
                 amountHitObjectsWithAccuracy += attributes.SliderCount;
+            if (amountHitObjectsWithAccuracy == 0)
+                return 0.0;
 
-            if (amountHitObjectsWithAccuracy > 0)
-                betterAccuracyPercentage = ((countGreat - Math.Max(totalHits - amountHitObjectsWithAccuracy, 0)) * 6 + countOk * 2 + countMeh) / (double)(amountHitObjectsWithAccuracy * 6);
-            else
-                betterAccuracyPercentage = 0;
+            double accuracyDifficulty = Math.Pow(1.52163, overallDifficulty) * 2.83;
+            accuracyDifficulty = Math.Pow(accuracyDifficulty, 1.3);
 
-            // It is possible to reach a negative accuracy with this formula. Cap it at zero - zero points.
-            if (betterAccuracyPercentage < 0)
-                betterAccuracyPercentage = 0;
+            double skillGreat;
+            double skillOk;
+            double skillMeh;
 
-            // Lots of arbitrary values from testing.
-            // Considering to use derivation from perfect accuracy in a probabilistic manner - assume normal distribution.
-            double accuracyValue = Math.Pow(1.52163, overallDifficulty) * Math.Pow(betterAccuracyPercentage, 24) * 2.83;
+            double skillPerfect = inferenceSkillBayesian(amountHitObjectsWithAccuracy, 0, accuracyDifficulty, amountHitObjectsWithAccuracy * 0.2);
+            skillGreat = inferenceSkillBayesian(amountHitObjectsWithAccuracy, countOk + countMeh + countMiss, accuracyDifficulty, amountHitObjectsWithAccuracy * 0.2);
+            skillOk = inferenceSkillBayesian(amountHitObjectsWithAccuracy - countGreat, countMeh + countMiss, accuracyDifficulty * 0.1, amountHitObjectsWithAccuracy * 0.2);
+            skillMeh = inferenceSkillBayesian(amountHitObjectsWithAccuracy - countGreat - countMeh, countMiss, accuracyDifficulty * 0.05, amountHitObjectsWithAccuracy * 0.2);
 
-            // Bonus for many hitcircles - it's harder to keep good accuracy up for longer.
-            accuracyValue *= amountHitObjectsWithAccuracy < 1000
-                ? Math.Pow(amountHitObjectsWithAccuracy / 1000.0, 0.3)
-                : Math.Pow(amountHitObjectsWithAccuracy / 1000.0, 0.1);
+            double accuracyValue = DifficultyCalculationUtils.Norm(2, skillGreat, skillOk, skillMeh);
+
+            double skillOverall = inferenceSkillBayesian(amountHitObjectsWithAccuracy, totalImperfectHits, accuracyDifficulty, amountHitObjectsWithAccuracy);
+            double highAccuracyBuff = 0.6 + 0.65 * skillOverall / skillPerfect;
+
+            accuracyValue = Math.Max(0, accuracyValue);
+            accuracyValue = Math.Pow(accuracyValue, 0.5) * 0.41 * highAccuracyBuff;
 
             // Increasing the accuracy value by object count for Blinds isn't ideal, so the minimum buff is given.
             if (score.Mods.Any(m => m is OsuModBlinds))
@@ -528,6 +533,21 @@ namespace osu.Game.Rulesets.Osu.Difficulty
                 traceableBonus += 0.025 * (1 - Math.Pow(1.5, approachRate)) * lowApproachRateSliderVisibilityFactor;
 
             return traceableBonus;
+        }
+
+        private double inferenceSkillBayesian(double objects, double imperfects, double objectDifficulty, double difficultObjects, double confidence = 0.99)
+        {
+            if (objects <= 0) return 0.0;
+
+            double adjustment = 1000;
+            if (imperfects > difficultObjects)
+                imperfects = difficultObjects + Math.Pow(imperfects - difficultObjects, 1.6);
+
+            double mu = Gamma.InvCDF(imperfects + 0.005 * (objects + adjustment), 1, confidence);
+            double k = objectDifficulty / Math.Log(1 + (mu / Math.Pow(objects, 1.2)));
+            double lerp = Math.Max(0.0, (objects - imperfects) / objects);
+
+            return k * lerp;
         }
 
         // Miss penalty assumes that a player will miss on the hardest parts of a map,
