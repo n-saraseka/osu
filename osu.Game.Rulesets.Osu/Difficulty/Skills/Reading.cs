@@ -26,7 +26,7 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
             hasHiddenMod = mods.OfType<OsuModHidden>().Any(m => !m.OnlyFadeApproachCircles.Value);
         }
 
-        private double currentDifficulty;
+        private double currentStrain;
 
         private double skillMultiplier => 2.5;
         private double strainDecayBase => 0.8;
@@ -37,11 +37,13 @@ namespace osu.Game.Rulesets.Osu.Difficulty.Skills
         {
             objectList.Add(current);
 
-            currentDifficulty *= strainDecay(current.DeltaTime);
+            double decay = strainDecay(current.DeltaTime);
 
-            currentDifficulty += ReadingEvaluator.EvaluateDifficultyOf(current, hasHiddenMod) * skillMultiplier;
+            currentStrain *= decay;
 
-            return currentDifficulty;
+            currentStrain += ReadingEvaluator.EvaluateDifficultyOf(current, hasHiddenMod) * (1 - decay) * skillMultiplier;
+
+            return currentStrain;
         }
 
         protected override void ApplyDifficultyTransformation(double[] difficulties)
