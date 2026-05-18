@@ -75,6 +75,11 @@ namespace osu.Game.Localisation
         public static LocalisableString ChangeDifficulty => new TranslatableString(getKey(@"change_difficulty"), @"Change difficulty");
 
         /// <summary>
+        /// "Import hitsounds"
+        /// </summary>
+        public static LocalisableString ImportHitsounds => new TranslatableString(getKey(@"import_hitsounds"), @"Import hitsounds");
+
+        /// <summary>
         /// "Delete difficulty"
         /// </summary>
         public static LocalisableString DeleteDifficulty => new TranslatableString(getKey(@"delete_difficulty"), @"Delete difficulty");

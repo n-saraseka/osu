@@ -1265,6 +1265,7 @@ namespace osu.Game.Screens.Edit
         {
             yield return createDifficultyCreationMenu();
             yield return createDifficultySwitchMenu();
+            yield return createSampleImportMenu();
             yield return new OsuMenuItemSpacer();
             yield return new EditorMenuItem(EditorStrings.DeleteDifficulty, MenuItemType.Destructive, deleteDifficulty) { Action = { Disabled = Beatmap.Value.BeatmapSetInfo.Beatmaps.Count < 2 } };
             yield return new OsuMenuItemSpacer();
@@ -1522,6 +1523,45 @@ namespace osu.Game.Screens.Edit
         {
             switchingDifficulty = true;
             loader?.ScheduleSwitchToExistingDifficulty(nextBeatmap, GetState(nextBeatmap.Ruleset));
+        }
+
+        private EditorMenuItem createSampleImportMenu()
+        {
+            var difficultyItems = new List<MenuItem>();
+
+            foreach (var rulesetBeatmaps in groupedOrderedBeatmaps)
+            {
+                if (difficultyItems.Count > 0)
+                    difficultyItems.Add(new OsuMenuItemSpacer());
+
+                foreach (var beatmap in rulesetBeatmaps)
+                {
+                    bool isCurrentDifficulty = playableBeatmap.BeatmapInfo.Equals(beatmap);
+                    var difficultyMenuItem = new DifficultyMenuItem(beatmap, isCurrentDifficulty, ImportSampleData);
+                    difficultyItems.Add(difficultyMenuItem);
+                }
+            }
+
+            // Ensure difficulty names are updated when modified in the editor.
+            // Maybe we could trigger less often but this seems to work well enough.
+            editorBeatmap.SaveStateTriggered += () =>
+            {
+                foreach (var beatmapInfo in Beatmap.Value.BeatmapSetInfo.Beatmaps)
+                {
+                    var menuItem = difficultyItems.OfType<DifficultyMenuItem>().FirstOrDefault(i => i.BeatmapInfo.Equals(beatmapInfo));
+                    if (menuItem != null)
+                        menuItem.Text.Value = string.IsNullOrEmpty(beatmapInfo.DifficultyName) ? "(unnamed)" : beatmapInfo.DifficultyName;
+                }
+            };
+
+            return new EditorMenuItem(EditorStrings.ImportHitsounds) { Items = difficultyItems };
+        }
+
+        public void ImportSampleData(BeatmapInfo beatmap)
+        {
+            var workingImportedBeatmap = beatmapManager.GetWorkingBeatmap(beatmap);
+            var playableImportedBeatmap = workingImportedBeatmap.GetPlayableBeatmap(Ruleset.Value);
+            SampleImporter.ImportFromBeatmap(editorBeatmap, playableImportedBeatmap);
         }
 
         private void cancelExit()
