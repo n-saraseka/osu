@@ -237,6 +237,8 @@ namespace osu.Game.Screens.Edit
         [CanBeNull]
         public event Action<double> ShowSampleEditPopoverRequested;
 
+        private SampleImporter sampleImporter = null!;
+
         public Editor(EditorLoader loader = null)
         {
             this.loader = loader;
@@ -283,6 +285,9 @@ namespace osu.Game.Screens.Edit
                 this.Exit();
                 return;
             }
+
+            sampleImporter = new SampleImporter();
+            sampleImporter.Load(config);
 
             // Todo: should probably be done at a DrawableRuleset level to share logic with Player.
             clock = new EditorClock(playableBeatmap, beatDivisor);
@@ -1561,7 +1566,7 @@ namespace osu.Game.Screens.Edit
         {
             var workingImportedBeatmap = beatmapManager.GetWorkingBeatmap(beatmap);
             var playableImportedBeatmap = workingImportedBeatmap.GetPlayableBeatmap(Ruleset.Value);
-            SampleImporter.ImportFromBeatmap(editorBeatmap, playableImportedBeatmap);
+            sampleImporter.ImportFromBeatmap(editorBeatmap, playableImportedBeatmap);
         }
 
         private void cancelExit()

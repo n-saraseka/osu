@@ -239,6 +239,16 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString RulesetNotSupportSaving => new TranslatableString(getKey(@"ruleset_not_support_saving"), @"Saving is not supported for this ruleset yet, sorry!");
 
+        /// <summary>
+        /// "Overwrite all hitsounds"
+        /// </summary>
+        public static LocalisableString OverwriteAllSamples => new TranslatableString(getKey(@"overwrite_all_samples"), @"Overwrite all hitsounds");
+
+        /// <summary>
+        /// "Overwrite defined hitsounds"
+        /// </summary>
+        public static LocalisableString OverwriteDefinedSamples => new TranslatableString(getKey(@"overwrite_defined_samples"), @"Overwrite defined hitsounds");
+
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }

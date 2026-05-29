@@ -214,6 +214,13 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.EditorScaleOrigin, EditorOrigin.GridCentre);
             SetDefault(OsuSetting.EditorRotationOrigin, EditorOrigin.GridCentre);
             SetDefault(OsuSetting.EditorAdjustExistingObjectsOnTimingChanges, true);
+            SetDefault(OsuSetting.EditorSampleCopyLeniency, 5.0, 0.5, 10.0, 0.5);
+            SetDefault(OsuSetting.EditorSampleCopyMode, SampleCopyMode.OverwriteAllSamples);
+            SetDefault(OsuSetting.EditorCopySamples, true);
+            SetDefault(OsuSetting.EditorCopyBanks, true);
+            SetDefault(OsuSetting.EditorCopyVolumes, true);
+            SetDefault(OsuSetting.EditorAlwaysPreserve5PercentVolume, false);
+            SetDefault(OsuSetting.EditorMuteRepeatEnds, false);
 
             SetDefault(OsuSetting.HideCountryFlags, false);
 
@@ -498,6 +505,13 @@ namespace osu.Game.Configuration
         EditorShowStoryboard,
         EditorSubmissionNotifyOnDiscussionReplies,
         EditorSubmissionLoadInBrowserAfterSubmission,
+        EditorSampleCopyLeniency,
+        EditorSampleCopyMode,
+        EditorCopySamples,
+        EditorCopyBanks,
+        EditorCopyVolumes,
+        EditorAlwaysPreserve5PercentVolume,
+        EditorMuteRepeatEnds,
 
         /// <summary>
         /// Cached state of whether local user is a supporter.
