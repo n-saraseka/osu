@@ -27,12 +27,9 @@ namespace osu.Game.Screens.Edit
 
             var sourceData = getHitSampleDataFromBeatmap(sourceBeatmap);
 
-            HitObject? previous = null;
-
             foreach (var originalHitObject in originalBeatmap.HitObjects)
             {
-                assignHitSamplesToObject(originalHitObject, previous, sourceData);
-                previous = originalHitObject;
+                assignHitSamplesToObject(originalHitObject, sourceData);
             }
 
             originalBeatmap.UpdateAllHitObjects();
@@ -63,7 +60,7 @@ namespace osu.Game.Screens.Edit
             return result;
         }
 
-        private static void assignHitSamplesToObject(HitObject hitObject, HitObject? previous, Dictionary<double, IList<HitSampleInfo>> data)
+        private static void assignHitSamplesToObject(HitObject hitObject, Dictionary<double, IList<HitSampleInfo>> data)
         {
             double time = hitObject.StartTime;
             double? appropriateKey = data.Keys.FirstOrDefault(k => k >= time - 1 && k <= time + 1);
@@ -81,49 +78,11 @@ namespace osu.Game.Screens.Edit
                     {
                         hasRepeats.NodeSamples[i] = data[(double)appropriateKey];
                     }
-                    else
-                    {
-                        if (i == 0)
-                        {
-                            if (previous != null) assignHitSamplesFromPrevious(hitObject, previous);
-                        }
-                        else hasRepeats.NodeSamples[i] = hasRepeats.NodeSamples[i - 1];
-                    }
-
-                    // Assign the same sample data as the IHasRepeats' first node to its body
-                    if (i == 0) hitObject.Samples = hasRepeats.NodeSamples[i];
                 }
             }
             else if (appropriateKey != 0)
             {
                 hitObject.Samples = data[(double)appropriateKey];
-            }
-            else
-            {
-                if (previous != null)
-                {
-                    assignHitSamplesFromPrevious(hitObject, previous);
-                }
-            }
-        }
-
-        private static void assignHitSamplesFromPrevious(HitObject hitObject, HitObject previous)
-        {
-            if (hitObject is IHasRepeats hasRepeats)
-            {
-                if (previous is IHasRepeats prevRepeats)
-                {
-                    hasRepeats.NodeSamples[0] = prevRepeats.NodeSamples[prevRepeats.SpanCount()];
-                }
-                else hasRepeats.NodeSamples[0] = previous.Samples;
-            }
-            else
-            {
-                if (previous is IHasRepeats prevRepeats)
-                {
-                    hitObject.Samples = prevRepeats.NodeSamples[prevRepeats.SpanCount()];
-                }
-                else hitObject.Samples = previous.Samples;
             }
         }
 
