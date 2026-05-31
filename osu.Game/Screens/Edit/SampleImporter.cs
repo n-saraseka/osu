@@ -15,23 +15,23 @@ namespace osu.Game.Screens.Edit
 {
     public partial class SampleImporter
     {
-        private Bindable<double> leniency = null!;
-        private Bindable<SampleCopyMode> copyMode = null!;
-        private Bindable<bool> shouldCopySamples = null!;
-        private Bindable<bool> shouldCopyBanks = null!;
-        private Bindable<bool> shouldCopyVolumes = null!;
-        private Bindable<bool> shouldPreserve5PercentVolume = null!;
-        private Bindable<bool> shouldMuteSliderends = null!;
+        private readonly Bindable<double> leniency;
+        private readonly Bindable<SampleCopyMode> copyMode;
+        private readonly Bindable<bool> shouldCopySamples;
+        private readonly Bindable<bool> shouldCopyBanks;
+        private readonly Bindable<bool> shouldCopyVolumes;
+        private readonly Bindable<bool> shouldPreserve5PercentVolume;
+        private readonly Bindable<bool> shouldMuteSliderends;
 
-        public void Load(OsuConfigManager config)
+        public SampleImporter(OsuConfigManager configManager)
         {
-            leniency = config.GetBindable<double>(OsuSetting.EditorSampleCopyLeniency);
-            copyMode = config.GetBindable<SampleCopyMode>(OsuSetting.EditorSampleCopyMode);
-            shouldCopySamples = config.GetBindable<bool>(OsuSetting.EditorCopySamples);
-            shouldCopyBanks = config.GetBindable<bool>(OsuSetting.EditorCopyBanks);
-            shouldCopyVolumes = config.GetBindable<bool>(OsuSetting.EditorCopyVolumes);
-            shouldPreserve5PercentVolume = config.GetBindable<bool>(OsuSetting.EditorAlwaysPreserve5PercentVolume);
-            shouldMuteSliderends = config.GetBindable<bool>(OsuSetting.EditorMuteRepeatEnds);
+            leniency = configManager.GetBindable<double>(OsuSetting.EditorSampleCopyLeniency);
+            copyMode = configManager.GetBindable<SampleCopyMode>(OsuSetting.EditorSampleCopyMode);
+            shouldCopySamples = configManager.GetBindable<bool>(OsuSetting.EditorCopySamples);
+            shouldCopyBanks = configManager.GetBindable<bool>(OsuSetting.EditorCopyBanks);
+            shouldCopyVolumes = configManager.GetBindable<bool>(OsuSetting.EditorCopyVolumes);
+            shouldPreserve5PercentVolume = configManager.GetBindable<bool>(OsuSetting.EditorAlwaysPreserve5PercentVolume);
+            shouldMuteSliderends = configManager.GetBindable<bool>(OsuSetting.EditorMuteRepeatEnds);
         }
 
         /// <summary>
@@ -127,23 +127,30 @@ namespace osu.Game.Screens.Edit
         /// <param name="sourceSampleInfos">The <see cref="IList{HitSampleInfo}"/> to get data from</param>
         private void applyChangesToHitSampleInfo(IList<HitSampleInfo> originalSampleInfos, IList<HitSampleInfo> sourceSampleInfos)
         {
+            List<HitSampleInfo> newSampleInfos = originalSampleInfos.ToList();
             // Default data for the "Overwrite everything" copy mode when there's no appropriate sample
-            HitSampleInfo defaultData = originalSampleInfos[0].With(newVolume: 100, newBank: "normal", newName: "hitnormal");
+            HitSampleInfo defaultData = new HitSampleInfo(HitSampleInfo.HIT_NORMAL).With(newVolume: 100, newBank: HitSampleInfo.BANK_NORMAL);
             List<HitSampleInfo> defaultSampleInfos = new List<HitSampleInfo> { defaultData };
 
-            int baseVolume = originalSampleInfos[0].Volume; // For when the "Preserve 5% volume" toggle is turned on
+            int baseVolume = originalSampleInfos.Count > 0 ? originalSampleInfos[0].Volume : 100; // For when the "Preserve 5% volume" toggle is turned on
 
             // Only reset the sample data if we overwrite samples for every object.
             if (!sourceSampleInfos.Any() && copyMode.Value == SampleCopyMode.OverwriteAllSamples) originalSampleInfos = defaultSampleInfos;
             else if (sourceSampleInfos.Any())
             {
-                originalSampleInfos = sourceSampleInfos.Select(info => info.With(
-                    newName: shouldCopySamples.Value ? info.Name : "hitnormal",
-                    newBank: shouldCopyBanks.Value ? info.Bank : "normal",
+                IEnumerable<HitSampleInfo> sampleInfos = shouldCopySamples.Value
+                    ? sourceSampleInfos
+                    : sourceSampleInfos.Take(1);
+                newSampleInfos = sampleInfos.Select(info => info.With(
+                    newName: shouldCopySamples.Value ? info.Name : HitSampleInfo.HIT_NORMAL,
+                    newBank: shouldCopyBanks.Value ? info.Bank : HitSampleInfo.BANK_NORMAL,
                     newVolume: shouldCopyVolumes.Value ? info.Volume : 100)).ToList();
             }
 
-            if (baseVolume == 5 && shouldPreserve5PercentVolume.Value) originalSampleInfos = originalSampleInfos.Select(info => info.With(newVolume: 5)).ToList();
+            if (baseVolume == 5 && shouldPreserve5PercentVolume.Value) newSampleInfos = originalSampleInfos.Select(info => info.With(newVolume: 5)).ToList();
+
+            originalSampleInfos.Clear();
+            foreach (var sampleInfo in newSampleInfos) originalSampleInfos.Add(sampleInfo);
         }
 
         /// <summary>
