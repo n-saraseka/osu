@@ -214,7 +214,7 @@ namespace osu.Game.Configuration
             SetDefault(OsuSetting.EditorScaleOrigin, EditorOrigin.GridCentre);
             SetDefault(OsuSetting.EditorRotationOrigin, EditorOrigin.GridCentre);
             SetDefault(OsuSetting.EditorAdjustExistingObjectsOnTimingChanges, true);
-            SetDefault(OsuSetting.EditorSampleCopyLeniency, 5.0, 0.5, 10.0, 0.5);
+            SetDefault(OsuSetting.EditorSampleCopyLeniency, 5.0, 0.0, 10.0, 1.0);
             SetDefault(OsuSetting.EditorSampleCopyMode, SampleCopyMode.OverwriteAllSamples);
             SetDefault(OsuSetting.EditorCopySamples, true);
             SetDefault(OsuSetting.EditorCopyBanks, true);
