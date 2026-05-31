@@ -84,6 +84,46 @@ namespace osu.Game.Localisation
         /// </summary>
         public static LocalisableString AllBookmarks => new TranslatableString(getKey(@"all_bookmarks"), @"All Bookmarks");
 
+        /// <summary>
+        /// "Would you like to import hitsound data from the &quot;{0}&quot; difficulty?"
+        /// </summary>
+        public static LocalisableString ImportHitSamplesDialogHeader(string difficultyName) => new TranslatableString(getKey(@"import_hit_samples_dialog_header"), @"Would you like to import hitsound data from the ""{0}"" difficulty?", difficultyName);
+
+        /// <summary>
+        /// "Temporal Leniency"
+        /// </summary>
+        public static LocalisableString TemporalLeniency => new TranslatableString(getKey(@"temporal_leniency"), @"Temporal Leniency");
+
+        /// <summary>
+        /// "Copy mode"
+        /// </summary>
+        public static LocalisableString HitSampleCopyMode => new TranslatableString(getKey(@"hit_sample_copy_mode"), @"Copy mode");
+
+        /// <summary>
+        /// "Copy hitsounds"
+        /// </summary>
+        public static LocalisableString CopyHitSamples => new TranslatableString(getKey(@"copy_hit_samples"), @"Copy hitsounds");
+
+        /// <summary>
+        /// "Copy samplesets"
+        /// </summary>
+        public static LocalisableString CopyBanks => new TranslatableString(getKey(@"copy_banks"), @"Copy samplesets");
+
+        /// <summary>
+        /// "Copy volumes"
+        /// </summary>
+        public static LocalisableString CopyVolumes => new TranslatableString(getKey(@"copy_volumes"), @"Copy volumes");
+
+        /// <summary>
+        /// "Preserve 5% volumes"
+        /// </summary>
+        public static LocalisableString PreserveFivePercentVolume => new TranslatableString(getKey(@"preserve_five_percent_volume"), @"Preserve 5% volumes");
+
+        /// <summary>
+        /// "Mute sliderends"
+        /// </summary>
+        public static LocalisableString MuteSliderends => new TranslatableString(getKey(@"mute_sliderends"), @"Mute sliderends");
+
         private static string getKey(string key) => $@"{prefix}:{key}";
     }
 }

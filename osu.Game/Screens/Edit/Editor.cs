@@ -286,8 +286,7 @@ namespace osu.Game.Screens.Edit
                 return;
             }
 
-            sampleImporter = new SampleImporter();
-            sampleImporter.Load(config);
+            sampleImporter = new SampleImporter(config);
 
             // Todo: should probably be done at a DrawableRuleset level to share logic with Player.
             clock = new EditorClock(playableBeatmap, beatDivisor);
@@ -1542,7 +1541,7 @@ namespace osu.Game.Screens.Edit
                 foreach (var beatmap in rulesetBeatmaps)
                 {
                     bool isCurrentDifficulty = playableBeatmap.BeatmapInfo.Equals(beatmap);
-                    var difficultyMenuItem = new DifficultyMenuItem(beatmap, isCurrentDifficulty, ImportSampleData);
+                    var difficultyMenuItem = new DifficultyMenuItem(beatmap, isCurrentDifficulty, ImportSamples);
                     difficultyItems.Add(difficultyMenuItem);
                 }
             }
@@ -1562,7 +1561,12 @@ namespace osu.Game.Screens.Edit
             return new EditorMenuItem(EditorStrings.ImportHitsounds) { Items = difficultyItems };
         }
 
-        public void ImportSampleData(BeatmapInfo beatmap)
+        public void ImportSamples(BeatmapInfo beatmap)
+        {
+            dialogOverlay.Push(new ImportHitSamplesDialog(importSampleData, beatmap, beatmap.DifficultyName));
+        }
+
+        private void importSampleData(BeatmapInfo beatmap)
         {
             var workingImportedBeatmap = beatmapManager.GetWorkingBeatmap(beatmap);
             var playableImportedBeatmap = workingImportedBeatmap.GetPlayableBeatmap(Ruleset.Value);
