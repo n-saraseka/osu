@@ -81,7 +81,7 @@ namespace osu.Game.Overlays.Dialog
             }
         }
 
-        public List<Drawable> PopupSettings = new List<Drawable>();
+        protected FillFlowContainer PopupSettings = null!;
 
         public IEnumerable<PopupDialogButton> Buttons
         {
@@ -224,14 +224,14 @@ namespace osu.Game.Overlays.Dialog
                                     AutoSizeAxes = Axes.Y,
                                     Padding = new MarginPadding { Horizontal = 15 },
                                 },
-                                new Container
+                                PopupSettings = new FillFlowContainer
                                 {
-                                    Origin = Anchor.TopCentre,
                                     Anchor = Anchor.TopCentre,
+                                    Origin = Anchor.TopCentre,
                                     RelativeSizeAxes = Axes.X,
                                     AutoSizeAxes = Axes.Y,
+                                    Direction = FillDirection.Vertical,
                                     Padding = new MarginPadding { Horizontal = 15 },
-                                    Children = PopupSettings,
                                 },
                                 buttonsContainer = new FillFlowContainer<PopupDialogButton>
                                 {
